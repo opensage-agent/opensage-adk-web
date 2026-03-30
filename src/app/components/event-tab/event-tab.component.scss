@@ -103,9 +103,7 @@
   align-items: center;
   font-size: 13px;
   color: var(--mat-sys-on-surface-variant);
-  background-color: var(--mat-sys-surface-container-lowest);
-  padding: 8px 16px;
-  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  padding: 8px 12px;
 
   span {
     font-weight: 500;
@@ -140,6 +138,22 @@
     justify-content: center;
     color: var(--mat-sys-on-surface-variant);
     margin: 0 4px;
+  }
+}
+
+.graph-header {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  color: var(--mat-sys-on-surface-variant);
+  background-color: var(--mat-sys-surface-container-lowest);
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+
+  span {
+    font-weight: 500;
+    margin-right: 8px;
+    color: var(--mat-sys-on-surface);
   }
 }
 

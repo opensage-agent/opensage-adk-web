@@ -186,7 +186,13 @@ export class EventTabComponent {
   }
 
   handleNodeClick(nodeName: string, mouseEvent?: MouseEvent) {
-    const allEvents = Array.from(this.eventDataMap().values());
+    let allEvents = Array.from(this.eventDataMap().values());
+    const selectedEv = this.selectedEvent();
+    const targetInvocationId = selectedEv?.invocationId;
+
+    if (targetInvocationId) {
+      allEvents = allEvents.filter(ev => ev.invocationId === targetInvocationId);
+    }
     
     const travelsForNode: any[][] = [];
     let currentTravel: any[] = [];

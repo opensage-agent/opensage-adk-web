@@ -2265,8 +2265,16 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     const runNodeNames: string[] = [];
     if (this.selectedEventIndex !== undefined) {
       const eventArray = Array.from(this.eventData.values());
+      const selectedEvent: any = eventArray[this.selectedEventIndex];
+      const targetInvocationId = selectedEvent?.invocationId;
+
       for (let i = 0; i <= this.selectedEventIndex; i++) {
         const ev: any = eventArray[i];
+
+        if (targetInvocationId && ev.invocationId !== targetInvocationId) {
+          continue;
+        }
+
         let np = ev.nodeInfo?.path;
         if (ev.author === 'user') {
           np = '__START__';

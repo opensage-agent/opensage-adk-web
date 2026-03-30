@@ -121,6 +121,12 @@
       }
       @if (selectedDetailTab === 'graph') {
         <div class="event-graph-wrapper">
+          <div class="graph-header" style="justify-content: space-between;">
+            <div>
+              <span>Invocation ID:</span>
+              <span class="id-text" style="font-weight: normal;">{{ selectedEvent()?.invocationId || 'N/A' }}</span>
+            </div>
+          </div>
           @if (hasSubWorkflows() && (breadcrumbs().length > 0 || appName())) {
             <div class="breadcrumb-container">
               <button class="breadcrumb-item" disabled>{{ appName() }}</button>
