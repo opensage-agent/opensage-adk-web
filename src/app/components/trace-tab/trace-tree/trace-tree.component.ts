@@ -36,11 +36,26 @@ export class TraceTreeComponent implements OnInit, OnChanges {
   @Input() spans: any[] = [];
   @Input() invocationId: string = '';
   @Input() uiEvents: UiEvent[] = [];
+  @Input() shouldShowEvent?: (uiEvent: UiEvent) => boolean;
+
   tree: Span[] = [];
   baseStartTimeMs = 0;
   totalDurationMs = 1;
   rootLatencyNanos = 0;
   flatTree: {span: Span; level: number}[] = [];
+
+  shouldShowNode(node: any): boolean {
+    const uiEvent = this.getUiEvent(node);
+    if (!uiEvent) {
+      return true;
+    }
+
+    if (this.shouldShowEvent) {
+      return this.shouldShowEvent(uiEvent);
+    }
+
+    return true;
+  }
   traceLabelIconMap = new Map<string, string>([
     ['Invocation', 'start'],
     // TODO: Remove agent_run mapping once all ADKs span names follow OTLP GenAI semconv.

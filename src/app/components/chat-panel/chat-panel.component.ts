@@ -357,6 +357,16 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
     return false;
   }
 
+  shouldShowTraceTree(uiEvent: UiEvent): boolean {
+    const invFilter = this.invocationIdFilter();
+    if (invFilter && uiEvent.event?.invocationId !== invFilter) {
+      return false;
+    }
+    return true;
+  }
+
+  shouldShowEventFn = this.shouldShowEvent.bind(this);
+
   constructor() {
     effect(() => {
       const sessionName = this.sessionName();

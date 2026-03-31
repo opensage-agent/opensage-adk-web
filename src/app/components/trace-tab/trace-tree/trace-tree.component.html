@@ -23,52 +23,54 @@
   </div>
   <div class="trace-container">
     @for (node of flatTree; track node) {
-    <div
-      class="trace-row"
-      (click)="selectRow(node)"
-      [class.selected]="rowSelected(node)"
-      id="trace-node-{{ node.span.span_id }}"
-      [appHtmlTooltip]="eventTooltip"
-      [appHtmlTooltipContext]="{$implicit: getUiEvent(node)}"
-      [appHtmlTooltipDisabled]="!getUiEvent(node)"
-    >
-      <div class="trace-row-left">
-        <div class="trace-indent">
-          @for (i of getArray(node.level); track $index) {
-          <div class="indent-connector"></div>
-          }
-        </div>
-        <span
-          class="material-symbols-outlined"
-          style="margin-right: 8px"
-          [class.is-event-row]="isEventRow(node)"
-        >
-          {{ getSpanIcon(node.span.name) }}
-        </span>
+      @if (shouldShowNode(node)) {
         <div
-          class="trace-label"
-          [class.is-event-row]="isEventRow(node)"
+          class="trace-row"
+          (click)="selectRow(node)"
+          [class.selected]="rowSelected(node)"
+          id="trace-node-{{ node.span.span_id }}"
+          [appHtmlTooltip]="eventTooltip"
+          [appHtmlTooltipContext]="{$implicit: getUiEvent(node)}"
+          [appHtmlTooltipDisabled]="!getUiEvent(node)"
         >
-          {{ formatSpanName(node.span.name) }}
+          <div class="trace-row-left">
+            <div class="trace-indent">
+              @for (i of getArray(node.level); track $index) {
+              <div class="indent-connector"></div>
+              }
+            </div>
+            <span
+              class="material-symbols-outlined"
+              style="margin-right: 8px"
+              [class.is-event-row]="isEventRow(node)"
+            >
+              {{ getSpanIcon(node.span.name) }}
+            </span>
+            <div
+              class="trace-label"
+              [class.is-event-row]="isEventRow(node)"
+            >
+              {{ formatSpanName(node.span.name) }}
+            </div>
+          </div>
+          <div class="trace-bar-container">
+            <div
+              class="trace-bar"
+              [style.left.%]="getRelativeStart(node.span)"
+              [style.width.%]="getRelativeWidth(node.span)"
+            >
+              {{ formatDuration(node.span.end_time - node.span.start_time) }}
+            </div>
+            @if (getRelativeWidth(node.span) < 10) {
+            <span
+              class="short-trace-bar-duration"
+              [style.right.%]="100 - getRelativeStart(node.span)"
+              >{{ formatDuration(node.span.end_time - node.span.start_time) }}</span
+            >
+            }
+          </div>
         </div>
-      </div>
-      <div class="trace-bar-container">
-        <div
-          class="trace-bar"
-          [style.left.%]="getRelativeStart(node.span)"
-          [style.width.%]="getRelativeWidth(node.span)"
-        >
-          {{ formatDuration(node.span.end_time - node.span.start_time) }}
-        </div>
-        @if (getRelativeWidth(node.span) < 10) {
-        <span
-          class="short-trace-bar-duration"
-          [style.right.%]="100 - getRelativeStart(node.span)"
-          >{{ formatDuration(node.span.end_time - node.span.start_time) }}</span
-        >
-        }
-      </div>
-    </div>
+      }
     }
   </div>
 </div>
