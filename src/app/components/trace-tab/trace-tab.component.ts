@@ -97,7 +97,7 @@ export class TraceTabComponent {
   
   protected readonly traceService = inject(TRACE_SERVICE);
   selectedSpan = toSignal(this.traceService.selectedTraceRow$);
-  selectedDetailTab = signal<'info' | 'raw'>('info');
+  selectedDetailTab = signal<'info' | 'attributes' | 'raw'>('info');
   switchToEvent = output<string>();
 
   formatTime(nanos: number | undefined): string {

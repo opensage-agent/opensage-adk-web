@@ -40,6 +40,9 @@
       <button mat-icon-button (click)="selectedDetailTab.set('info')" [class.active]="selectedDetailTab() === 'info'" matTooltip="Info" matTooltipPosition="right">
         <mat-icon>info</mat-icon>
       </button>
+      <button mat-icon-button (click)="selectedDetailTab.set('attributes')" [class.active]="selectedDetailTab() === 'attributes'" matTooltip="Attributes" matTooltipPosition="right">
+        <mat-icon>list_alt</mat-icon>
+      </button>
       <button mat-icon-button (click)="selectedDetailTab.set('raw')" [class.active]="selectedDetailTab() === 'raw'" matTooltip="Raw JSON" matTooltipPosition="right">
         <mat-icon>data_object</mat-icon>
       </button>
@@ -84,12 +87,18 @@
             </table>
           }
 
+        </div>
+      }
+      @if (selectedDetailTab() === 'attributes') {
+        <div class="info-tables-container">
           @if (selectedSpan()?.attributes && Object.keys(selectedSpan()!.attributes).length > 0) {
-            <table app-info-table title="Attributes">
+            <table app-info-table>
                 @for (key of Object.keys(selectedSpan()!.attributes); track key) {
                   <tr><td>{{ key }}</td><td>{{ selectedSpan()!.attributes[key] }}</td></tr>
                 }
             </table>
+          } @else {
+            <div class="empty-state">No attributes available</div>
           }
         </div>
       }
