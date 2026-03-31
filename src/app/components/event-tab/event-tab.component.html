@@ -33,6 +33,12 @@
         </button>
       }
 
+      @if (selectedEvent()?.usageMetadata && Object.keys(selectedEvent()!.usageMetadata).length > 0) {
+        <button mat-icon-button (click)="selectedDetailTab = 'metadata'" [class.active]="selectedDetailTab === 'metadata'" matTooltip="Usage Metadata" matTooltipPosition="right">
+          <mat-icon>analytics</mat-icon>
+        </button>
+      }
+
       <button mat-icon-button (click)="selectedDetailTab = 'raw'" [class.active]="selectedDetailTab === 'raw'" matTooltip="Raw JSON" matTooltipPosition="right">
         <mat-icon>data_object</mat-icon>
       </button>
@@ -119,6 +125,10 @@
                 }
             </table>
           }
+        </div>
+      }
+      @if (selectedDetailTab === 'metadata') {
+        <div class="info-tables-container">
           @if (selectedEvent()?.usageMetadata && Object.keys(selectedEvent()!.usageMetadata).length > 0) {
             <table app-info-table title="Usage Metadata">
                 @for (key of Object.keys(selectedEvent()!.usageMetadata); track key) {
@@ -137,7 +147,6 @@
                 }
             </table>
           }
-
         </div>
       }
       @if (selectedDetailTab === 'raw') {

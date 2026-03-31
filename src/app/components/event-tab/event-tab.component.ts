@@ -111,13 +111,13 @@ export class EventTabComponent {
     return flatSpans.filter(s => s.attributes && s.attributes['gcp.vertex.agent.event_id'] === ev.id);
   });
 
-  private _selectedDetailTab: 'event' | 'raw' | 'request' | 'response' | 'graph' = 'event';
+  private _selectedDetailTab: 'event' | 'raw' | 'request' | 'response' | 'graph' | 'metadata' = 'event';
   
   get selectedDetailTab() {
     return this._selectedDetailTab;
   }
   
-  set selectedDetailTab(tab: 'event' | 'raw' | 'request' | 'response' | 'graph') {
+  set selectedDetailTab(tab: 'event' | 'raw' | 'request' | 'response' | 'graph' | 'metadata') {
     this._selectedDetailTab = tab;
     if (tab === 'graph') {
       setTimeout(() => {
@@ -175,6 +175,8 @@ export class EventTabComponent {
           isTabValid = this.isEventRequestResponseLoadingSignal() || !!(this.llmResponse() && Object.keys(this.llmResponse()!).length > 0);
         } else if (currentTab === 'graph') {
           isTabValid = true;
+        } else if (currentTab === 'metadata') {
+          isTabValid = !!(event.usageMetadata && Object.keys(event.usageMetadata).length > 0);
         }
 
         if (!isTabValid) {
