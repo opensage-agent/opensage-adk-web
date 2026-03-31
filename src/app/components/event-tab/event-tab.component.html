@@ -169,7 +169,7 @@
                   </div>
                 </button>
                 <mat-menu #invocationSelectorMenu="matMenu">
-                  @for (inv of invocationDisplayMap() | keyvalue; track inv.key) {
+                  @for (inv of invocationDisplayEntries(); track inv.key) {
                     <button mat-menu-item (click)="onInvocationSelected(inv.key)" [matTooltip]="inv.key" matTooltipPosition="right">
                       <mat-icon [style.visibility]="selectedEvent()?.invocationId === inv.key ? 'visible' : 'hidden'" style="font-size: 16px; width: 16px; height: 16px; margin-right: 8px; color: var(--mat-sys-primary);">check</mat-icon>
                       {{ inv.value }}

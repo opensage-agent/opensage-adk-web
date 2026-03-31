@@ -55,6 +55,10 @@ export class EventTabComponent {
   readonly hasSubWorkflows = input<boolean>(false);
   readonly invocationDisplayMap = input<Map<string, string>>(new Map());
 
+  readonly invocationDisplayEntries = computed(() => {
+    return Array.from(this.invocationDisplayMap().entries()).map(([key, value]) => ({key, value}));
+  });
+
   readonly breadcrumbs = computed(() => {
     const path = this.selectedEventGraphPath();
     if (!path) return [];
