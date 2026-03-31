@@ -25,7 +25,7 @@ import {MatCardModule} from '@angular/material/card';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatIconModule} from '@angular/material/icon';
 import {MatInputModule} from '@angular/material/input';
-import {MatMenuModule} from '@angular/material/menu';
+import {MatMenuModule, MatMenuTrigger} from '@angular/material/menu';
 import {MatProgressBarModule} from '@angular/material/progress-bar';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
@@ -191,10 +191,59 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   hideIntermediateEvents = input<boolean>(false);
   
   viewMode = signal<'events' | 'traces'>('events');
+  invocationIdFilterActive = signal<boolean>(false);
+  nodePathFilterActive = signal<boolean>(false);
   invocationIdFilter = signal<string>('');
   nodePathFilter = signal<string>('');
   invocationIdOptions: string[] = [];
   nodePathOptions: string[] = [];
+
+  @ViewChild('invChipMenuTrigger') invChipMenuTrigger?: MatMenuTrigger;
+  @ViewChild('nodeChipMenuTrigger') nodeChipMenuTrigger?: MatMenuTrigger;
+  @ViewChild('addMenuTrigger') addMenuTrigger?: MatMenuTrigger;
+
+  openAddFilterMenu(event: Event) {
+    event.stopPropagation();
+    this.addMenuTrigger?.openMenu();
+  }
+
+  addInvocationIdFilter() {
+    this.invocationIdFilterActive.set(true);
+    setTimeout(() => {
+      this.invChipMenuTrigger?.openMenu();
+    });
+  }
+
+  addNodePathFilter() {
+    this.nodePathFilterActive.set(true);
+    setTimeout(() => {
+      this.nodeChipMenuTrigger?.openMenu();
+    });
+  }
+
+  removeInvocationIdFilter(event: Event) {
+    event.stopPropagation();
+    this.invocationIdFilterActive.set(false);
+    this.invocationIdFilter.set('');
+  }
+
+  removeNodePathFilter(event: Event) {
+    event.stopPropagation();
+    this.nodePathFilterActive.set(false);
+    this.nodePathFilter.set('');
+  }
+
+  onInvocationMenuClosed() {
+    if (!this.invocationIdFilter()) {
+      this.invocationIdFilterActive.set(false);
+    }
+  }
+
+  onNodePathMenuClosed() {
+    if (!this.nodePathFilter()) {
+      this.nodePathFilterActive.set(false);
+    }
+  }
   spansByInvocationId = new Map<string, any[]>();
 
   eventsScrollTop = -1;

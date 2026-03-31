@@ -56,58 +56,86 @@
     }
   }
 
-  mat-select.filter-input {
+  .filter-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     background-color: transparent;
     border: none;
-    color: var(--mat-sys-on-surface);
     border-radius: 16px;
     padding: 0 12px;
-    font-size: 13px;
+    min-width: 150px;
     height: 28px;
-    max-width: 140px;
-    transition: all 0.2s ease;
+    margin-left: 16px;
     cursor: pointer;
-    box-sizing: border-box;
-    display: inline-flex;
-    align-items: center;
-
-    ::ng-deep .mat-mdc-select-trigger {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-    }
-
-    ::ng-deep .mat-mdc-select-value {
-      max-width: 100%;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      line-height: 28px;
-      margin-right: 4px;
-    }
+    transition: all 0.2s ease;
 
     &:hover {
       background-color: var(--mat-sys-surface-variant);
     }
 
-    &.mat-mdc-select-focused, &:focus-within {
+    &:focus-within, &.cdk-focused {
       outline: none;
       box-shadow: inset 0 0 0 2px var(--mat-sys-primary);
     }
   }
+
+  .filter-chip {
+    display: flex;
+    align-items: center;
+    background-color: var(--mat-sys-surface-container-highest);
+    border: 1px solid var(--mat-sys-outline-variant);
+    border-radius: 12px;
+    padding: 0 8px;
+    font-size: 13px;
+    height: 22px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: var(--mat-sys-surface-variant);
+    }
+
+    .chip-label {
+      font-weight: 500;
+      color: var(--mat-sys-on-surface-variant);
+    }
+
+    .chip-remove {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--mat-sys-on-surface-variant);
+      padding: 0;
+      margin-left: 4px;
+
+      mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+      }
+
+      &:hover {
+        color: var(--mat-sys-on-surface);
+      }
+    }
+  }
+
 }
 
 ::ng-deep .filter-panel {
   min-width: max-content !important;
   max-width: 50vw; // Ensure it doesn't grow overly large
 
-  .mat-mdc-option {
+  .mat-mdc-menu-item {
     min-height: 32px !important;
-    font-size: 13px !important;
+    font-size: 12px !important;
     
-    .mdc-list-item__primary-text {
-      font-size: 13px !important;
+    .mat-mdc-menu-item-text, .mdc-list-item__primary-text {
+      font-size: 12px !important;
       line-height: normal;
     }
   }

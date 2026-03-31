@@ -23,31 +23,57 @@
     </mat-button-toggle-group>
     
     @if (viewMode() === 'events') {
-      <div class="filter-bar" style="display: flex; gap: 8px; margin-left: 16px; align-items: center;">
-        <mat-select class="filter-input" [ngModel]="invocationIdFilter()" (ngModelChange)="invocationIdFilter.set($event)" panelClass="filter-panel" [style.width]="'max-content'">
-          <mat-option value="">All Invocations</mat-option>
-          @for (id of invocationIdOptions; track id) {
-            <mat-option [value]="id">{{ id }}</mat-option>
-          }
-        </mat-select>
-        <mat-select class="filter-input" [ngModel]="nodePathFilter()" (ngModelChange)="nodePathFilter.set($event)" panelClass="filter-panel" [style.width]="'max-content'">
-          <mat-option value="">All Nodes</mat-option>
-          @for (path of nodePathOptions; track path) {
-            <mat-option [value]="path">{{ path }}</mat-option>
-          }
-        </mat-select>
+      <div class="filter-bar-container" (click)="openAddFilterMenu($event)">
+        @if (invocationIdFilterActive()) {
+          <div class="filter-chip" [matMenuTriggerFor]="invocationMenu" #invChipMenuTrigger="matMenuTrigger" (click)="$event.stopPropagation()">
+            <span class="chip-label">Invocation</span>
+            <button class="chip-remove" (click)="removeInvocationIdFilter($event)"><mat-icon>close</mat-icon></button>
+          </div>
+        }
+        @if (nodePathFilterActive()) {
+          <div class="filter-chip" [matMenuTriggerFor]="nodePathMenu" #nodeChipMenuTrigger="matMenuTrigger" (click)="$event.stopPropagation()">
+            <span class="chip-label">Node</span>
+            <button class="chip-remove" (click)="removeNodePathFilter($event)"><mat-icon>close</mat-icon></button>
+          </div>
+        }
+        @if (hideIntermediateEvents()) {
+          <div class="filter-chip" (click)="$event.stopPropagation()">
+            <span class="chip-label">Final</span>
+            <button class="chip-remove" (click)="toggleHideIntermediateEvents.emit(); $event.stopPropagation()"><mat-icon>close</mat-icon></button>
+          </div>
+        }
+        @if (!invocationIdFilterActive() || !nodePathFilterActive() || !hideIntermediateEvents()) {
+          <div class="filter-chip" [matMenuTriggerFor]="addFilterMenu" #addMenuTrigger="matMenuTrigger" (click)="$event.stopPropagation()">
+            <mat-icon style="font-size: 14px; width: 14px; height: 14px; margin-right: 4px; color: var(--mat-sys-on-surface-variant)">add</mat-icon>
+            <span class="chip-label">Filter</span>
+          </div>
+        }
       </div>
 
-      <button
-        style="margin-left: 8px; transform: scale(0.85);"
-        mat-icon-button
-        class="toolbar-icon-button"
-        (click)="toggleHideIntermediateEvents.emit()"
-        matTooltip="Toggle intermediate events"
-        [style.color]="hideIntermediateEvents() ? 'var(--mat-sys-primary)' : 'inherit'"
-      >
-        <mat-icon>{{ hideIntermediateEvents() ? 'visibility_off' : 'visibility' }}</mat-icon>
-      </button>
+      <mat-menu #addFilterMenu="matMenu" class="filter-panel">
+        @if (!invocationIdFilterActive()) {
+          <button mat-menu-item (click)="addInvocationIdFilter()">Invocation</button>
+        }
+        @if (!nodePathFilterActive()) {
+          <button mat-menu-item (click)="addNodePathFilter()">Node</button>
+        }
+        @if (!hideIntermediateEvents()) {
+          <button mat-menu-item (click)="toggleHideIntermediateEvents.emit()">Final</button>
+        }
+      </mat-menu>
+
+      <mat-menu #invocationMenu="matMenu" class="filter-panel" (closed)="onInvocationMenuClosed()">
+        @for (id of invocationIdOptions; track id) {
+          <button mat-menu-item (click)="invocationIdFilter.set(id)">{{ id }}</button>
+        }
+      </mat-menu>
+
+      <mat-menu #nodePathMenu="matMenu" class="filter-panel" (closed)="onNodePathMenuClosed()">
+        @for (path of nodePathOptions; track path) {
+          <button mat-menu-item (click)="nodePathFilter.set(path)">{{ path }}</button>
+        }
+      </mat-menu>
+
     }
 
     <div style="flex-grow: 1;"></div>
