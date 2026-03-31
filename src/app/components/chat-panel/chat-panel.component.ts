@@ -453,6 +453,11 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
     }, 50);
   }
 
+  focusInput() {
+    setTimeout(() => {
+      this.textarea?.nativeElement?.focus();
+    }, 50);
+  }
 
   isMessageEventSelected(index: number): boolean {
     return index === this.selectedMessageIndex;

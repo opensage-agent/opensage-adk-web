@@ -2081,6 +2081,9 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedMessageIndex = undefined;
     this.traceService.resetTraceService();
 
+    // Auto-focus chat input
+    this.chatPanel()?.focusInput();
+
     // Close eval history if opened
     if (!!this.evalTab()?.showEvalHistory) {
       this.evalTab()?.toggleEvalHistoryButton();
