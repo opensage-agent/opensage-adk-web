@@ -36,10 +36,10 @@ export function addSvgNodeHoverEffects(
   nodeElements.forEach((nodeElement: Element) => {
     const htmlElement = nodeElement as HTMLElement;
 
-    // Skip legend, START, and END nodes
+    // Skip legend, START, END nodes, and unvisited nodes
     const titleElement = nodeElement.querySelector('title');
     const nodeName = titleElement?.textContent || '';
-    if (nodeName === '__LEGEND__' || nodeName === '__START__' || nodeName === '__END__') {
+    if (nodeName === '__LEGEND__' || nodeName === '__START__' || nodeName === '__END__' || htmlElement.classList.contains('unvisited-node')) {
       return;
     }
 

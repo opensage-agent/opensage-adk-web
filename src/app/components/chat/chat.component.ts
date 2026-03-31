@@ -2371,12 +2371,13 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     let highlightedSvgDark = sessionGraphSvgDark[graphPath] || sessionGraphSvgDark[''] || Object.values(sessionGraphSvgDark)[0] || '';
 
     const runNodeNames: string[] = [];
+    const allRunNodeNames: string[] = [];
     if (this.selectedEventIndex !== undefined) {
       const eventArray = Array.from(this.eventData.values());
       const selectedEvent: any = eventArray[this.selectedEventIndex];
       const targetInvocationId = selectedEvent?.invocationId;
 
-      for (let i = 0; i <= this.selectedEventIndex; i++) {
+      for (let i = 0; i < eventArray.length; i++) {
         const ev: any = eventArray[i];
 
         if (targetInvocationId && ev.invocationId !== targetInvocationId) {
@@ -2401,17 +2402,22 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           }
 
           if (evGraphPath === graphPath) {
-            if (runNodeNames.length === 0 || runNodeNames[runNodeNames.length - 1] !== evNodeName) {
-              runNodeNames.push(evNodeName);
+            if (i <= this.selectedEventIndex) {
+              if (runNodeNames.length === 0 || runNodeNames[runNodeNames.length - 1] !== evNodeName) {
+                runNodeNames.push(evNodeName);
+              }
+            }
+            if (allRunNodeNames.length === 0 || allRunNodeNames[allRunNodeNames.length - 1] !== evNodeName) {
+              allRunNodeNames.push(evNodeName);
             }
           }
         }
       }
     }
 
-    if (runNodeNames.length > 0 && highlightedSvgLight && highlightedSvgDark) {
-      highlightedSvgLight = this.highlightExecutionPathInSvg(highlightedSvgLight, runNodeNames, 'light');
-      highlightedSvgDark = this.highlightExecutionPathInSvg(highlightedSvgDark, runNodeNames, 'dark');
+    if (allRunNodeNames.length > 0 && highlightedSvgLight && highlightedSvgDark) {
+      highlightedSvgLight = this.highlightExecutionPathInSvg(highlightedSvgLight, runNodeNames, allRunNodeNames, 'light');
+      highlightedSvgDark = this.highlightExecutionPathInSvg(highlightedSvgDark, runNodeNames, allRunNodeNames, 'dark');
     }
     
     this.selectedEventGraphPath = graphPath;
@@ -2424,8 +2430,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.renderedEventGraph = this.safeValuesService.bypassSecurityTrustHtml(highlightedSvg);
   }
 
-  highlightExecutionPathInSvg(svgString: string, runNodeNames: string[], theme: 'light' | 'dark' = 'light'): string {
-    if (!runNodeNames || runNodeNames.length === 0) return svgString;
+  highlightExecutionPathInSvg(svgString: string, runNodeNames: string[], allRunNodeNames: string[], theme: 'light' | 'dark' = 'light'): string {
+    if (!allRunNodeNames || allRunNodeNames.length === 0) return svgString;
 
     const parser = new DOMParser();
     const doc = parser.parseFromString(svgString, 'image/svg+xml');
@@ -2474,7 +2480,17 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
        return null;
     }).filter(id => id) as string[];
 
+    const allTargetNodeIds = allRunNodeNames.map(name => {
+       for (const [text, id] of nodeNameToId.entries()) {
+         if (text === name || text.includes(name) || text === `"${name}"`) {
+           return id;
+         }
+       }
+       return null;
+    }).filter(id => id) as string[];
+
     const { visitedNodes, visitedEdges } = this.calculateVisitedPath(targetNodeIds, reverseAdjacencyList);
+    const { visitedNodes: allVisitedNodes } = this.calculateVisitedPath(allTargetNodeIds, reverseAdjacencyList);
     const edgeCounts = this.calculateEdgeCounts(targetNodeIds, visitedNodes, visitedEdges, forwardAdjacencyList);
 
     const visitedEdgeColor = theme === 'dark' ? '#34a853' : '#a1c2a1';
@@ -2563,6 +2579,37 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           shape.setAttribute('fill', isActive ? activeFillColor : visitedFillColor);
           shape.setAttribute('stroke-width', isActive ? '4' : '2');
         }
+      }
+      
+      if (!allVisitedNodes.has(titleName)) {
+        nodeElement.classList.add('unvisited-node');
+        const shape = nodeElement.querySelector('ellipse, polygon, path, rect');
+        if (shape) {
+          shape.setAttribute('stroke', theme === 'dark' ? '#555555' : '#cccccc');
+          shape.setAttribute('fill', theme === 'dark' ? '#333333' : '#f5f5f5');
+          const shapeTitle = doc.createElementNS('http://www.w3.org/2000/svg', 'title');
+          shapeTitle.textContent = 'Not run in this invocation';
+          shape.appendChild(shapeTitle);
+        }
+        const textElements = nodeElement.querySelectorAll('text');
+        textElements.forEach((t) => {
+          t.setAttribute('fill', theme === 'dark' ? '#777777' : '#999999');
+          const textTitle = doc.createElementNS('http://www.w3.org/2000/svg', 'title');
+          textTitle.textContent = 'Not run in this invocation';
+          t.appendChild(textTitle);
+        });
+        if (titleElement) {
+          titleElement.textContent = 'Not run in this invocation';
+        } else {
+          const newTitle = doc.createElementNS('http://www.w3.org/2000/svg', 'title');
+          newTitle.textContent = 'Not run in this invocation';
+          nodeElement.appendChild(newTitle);
+        }
+        const aElements = nodeElement.querySelectorAll('a');
+        aElements.forEach((aElem) => {
+          aElem.setAttribute('title', 'Not run in this invocation');
+          aElem.setAttributeNS('http://www.w3.org/1999/xlink', 'title', 'Not run in this invocation');
+        });
       }
     });
 

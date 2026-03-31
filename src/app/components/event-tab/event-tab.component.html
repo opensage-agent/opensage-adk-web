@@ -201,6 +201,9 @@
             </div>
           }
           <div class="event-graph-container" #graphContainer>
+            <button mat-icon-button class="fullscreen-graph-button" (click)="showAgentStructureGraph.emit(true)" matTooltip="Full Screen">
+              <mat-icon>fullscreen</mat-icon>
+            </button>
             @if (!renderedEventGraph()) {
               <div class="request-response-loading-spinner-container">
                 <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>

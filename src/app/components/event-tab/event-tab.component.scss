@@ -160,7 +160,30 @@
 .event-graph-container {
   flex: 1;
   overflow: hidden;
-  margin: 16px;
+  padding: 16px;
+  position: relative;
+}
+
+.fullscreen-graph-button {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 10;
+  width: 48px !important;
+  height: 48px !important;
+  padding: 0 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+
+  mat-icon {
+    font-size: 28px !important;
+    width: 28px !important;
+    height: 28px !important;
+    line-height: 28px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
 }
 
 .event-graph-container .svg-graph-wrapper {
@@ -169,7 +192,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  cursor: pointer;
 }
 
 .event-graph-container ::ng-deep svg {
