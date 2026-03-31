@@ -388,6 +388,14 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   }
 
   ngOnInit() {
+    this.uiStateService.isSessionLoading()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((isLoading) => {
+        if (!isLoading) {
+          this.focusInput();
+        }
+      });
+
     try {
       const savedMode = localStorage.getItem('chat-view-mode');
       if (savedMode === 'events' || savedMode === 'traces') {
@@ -461,6 +469,10 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
   }
 
   ngOnChanges(changes: SimpleChanges) {
+    if (changes['appName']) {
+      this.focusInput();
+    }
+
     // Scroll to top when switching apps or when messages become empty (new session with README)
     if ((changes['appName'] || changes['uiEvents']) && this.uiEvents.length === 0 && this.agentReadme) {
       setTimeout(() => this.scrollToTop(), 0);
