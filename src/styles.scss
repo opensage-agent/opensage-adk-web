@@ -16,10 +16,6 @@
 
 @use '@angular/material' as mat;
 
-:root {
-  --ngx-json-string: #558255;
-}
-
 // Apply dark theme by default
 html {
   @include mat.theme((
@@ -67,31 +63,6 @@ markdown pre {
 
 markdown code {
   border-radius: 4px !important;
-}
-
-.json-key {
-  color: #9876aa;
-  font-weight: 600;
-}
-
-.json-string {
-  color: #6a8759;
-}
-
-.json-number {
-  color: #6897bb;
-}
-
-.json-boolean {
-  color: #cc7832;
-}
-
-.json-null {
-  color: #808080;
-}
-
-.wide-agent-dropdown-panel {
-  max-height: 600px !important;
 }
 
 .json-tooltip-panel {
