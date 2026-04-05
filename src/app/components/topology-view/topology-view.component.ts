@@ -38,6 +38,7 @@ export class TopologyViewComponent implements OnInit, OnDestroy {
   private network: any = null;
   private lastHash = '';
   private refreshInterval: any = null;
+  private refreshRequestId = 0;
   private nodes: TopologyNode[] = [];
 
   constructor(private subagentService: SubagentService) {}
@@ -59,19 +60,21 @@ export class TopologyViewComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.refreshInterval) clearInterval(this.refreshInterval);
-    if (this.network) this.network.destroy();
+    this.clearRenderedTopology();
   }
 
   refresh() {
+    const requestId = ++this.refreshRequestId;
     this.subagentService.getTopology().subscribe({
       next: (data) => {
+        if (requestId !== this.refreshRequestId) {
+          return;
+        }
         if (!data.nodes || data.nodes.length <= 1) {
           this.isEmpty = true;
-          if (this.network) {
-            this.network.destroy();
-            this.network = null;
-          }
+          this.clearRenderedTopology();
           this.lastHash = 'empty';
+          this.nodes = [];
           return;
         }
 
@@ -92,6 +95,7 @@ export class TopologyViewComponent implements OnInit, OnDestroy {
           running: '#81c995',
           completed: '#5f9dff',
           error: '#f28b82',
+          interrupted: '#f28b82',
         };
 
         const visNodes = data.nodes.map(n => ({
@@ -118,25 +122,43 @@ export class TopologyViewComponent implements OnInit, OnDestroy {
           smooth: {type: 'cubicBezier', roundness: 0.4},
         }));
 
-        if (this.network) this.network.destroy();
+        this.clearRenderedTopology();
         this.network = new vis.Network(
             this.containerRef.nativeElement,
             {nodes: visNodes, edges: visEdges},
             {
               layout: {
-                hierarchical: {
-                  direction: 'UD',
-                  sortMethod: 'directed',
-                  levelSeparation: 80,
-                  nodeSpacing: 120,
+                improvedLayout: true,
+                randomSeed: 1337,
+              },
+              physics: {
+                enabled: true,
+                solver: 'barnesHut',
+                barnesHut: {
+                  gravitationalConstant: -4_000,
+                  centralGravity: 0.15,
+                  springLength: 160,
+                  springConstant: 0.04,
+                  damping: 0.2,
+                },
+                stabilization: {
+                  enabled: true,
+                  iterations: 250,
+                  fit: true,
                 },
               },
-              physics: false,
-              interaction: {hover: true, zoomView: true, dragView: true},
+              interaction: {
+                hover: true,
+                zoomView: true,
+                dragView: true,
+                dragNodes: true,
+              },
             },
         );
 
         this.network.once('stabilized', () => {
+          // Freeze the settled layout so users can drag nodes freely.
+          this.network.setOptions({physics: {enabled: false}});
           this.network.fit({animation: {duration: 300, easingFunction: 'easeInOutQuad'}});
         });
 
@@ -150,9 +172,25 @@ export class TopologyViewComponent implements OnInit, OnDestroy {
         });
       },
       error: () => {
+        if (requestId !== this.refreshRequestId) {
+          return;
+        }
         this.isEmpty = true;
+        this.clearRenderedTopology();
+        this.lastHash = 'error';
+        this.nodes = [];
       },
     });
+  }
+
+  private clearRenderedTopology() {
+    if (this.network) {
+      this.network.destroy();
+      this.network = null;
+    }
+    if (this.containerRef?.nativeElement) {
+      this.containerRef.nativeElement.innerHTML = '';
+    }
   }
 
   private renderFallback(data: any) {
@@ -161,11 +199,14 @@ export class TopologyViewComponent implements OnInit, OnDestroy {
       running: '#81c995',
       completed: '#5f9dff',
       error: '#f28b82',
+      interrupted: '#f28b82',
     };
     let html = '<div style="padding:24px;font-family:monospace;font-size:13px;white-space:pre;color:#b2b2b2">';
     for (const n of data.nodes) {
       const pre = n.type === 'root' ? '' : '  └─ ';
-      const dot = n.status === 'running' ? '●' : n.status === 'completed' ? '◆' : '○';
+      const dot = n.status === 'running' ? '●' :
+          n.status === 'completed' ? '◆' :
+          (n.status === 'error' || n.status === 'interrupted') ? '✖' : '○';
       const sc = colorMap[n.status] || '#656565';
       html += `${pre}<span style="color:${sc};cursor:${n.type === 'root' ? 'default' : 'pointer'}">${dot} ${n.label}</span>\n`;
     }

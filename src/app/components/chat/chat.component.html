@@ -63,22 +63,6 @@
         <span class="selector-label">{{ getToolbarSessionId() }}</span>
         <mat-icon class="selector-caret" fontSet="material-symbols-outlined">arrow_drop_down</mat-icon>
       </button>
-      @if (!evalCase) {
-        @let isSessionLoadingGroup = uiStateService.isSessionLoading() | async;
-        @if (isSessionLoadingGroup === false) {
-          <div class="selector-group-divider"></div>
-          <button
-            mat-icon-button
-            class="toolbar-icon-button"
-            (click)="onNewSessionClick()"
-            id="toolbar-new-session-button"
-            [matTooltip]="i18n.createNewSessionTooltip"
-            [disabled]="!sessionId"
-          >
-            <mat-icon>add</mat-icon>
-          </button>
-        }
-      }
     </div>
   <div class="toolbar-content">
     @if (evalCase) {

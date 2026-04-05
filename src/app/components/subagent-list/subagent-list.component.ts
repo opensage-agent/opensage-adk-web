@@ -43,6 +43,7 @@ import {SubagentInfo, SubagentService} from '../../core/services/subagent.servic
     .badge-completed { background: #8ab4f822; color: #8ab4f8; border: 1px solid #8ab4f844; }
     .badge-active { background: #8ab4f822; color: #8ab4f8; border: 1px solid #8ab4f844; }
     .badge-error { background: #f2857522; color: #f28b82; border: 1px solid #f28b8244; }
+    .badge-interrupted { background: #f2857522; color: #f28b82; border: 1px solid #f28b8244; }
     .agent-meta {
       color: var(--mat-sys-on-surface-variant, #656565);
       font-size: 12px; margin-top: 2px;

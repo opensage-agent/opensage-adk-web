@@ -16,6 +16,7 @@ interface TabInfo {
   label: string;
   type: 'main'|'topology'|'list'|'subagent';
   agentName?: string;
+  sessionId?: string;
   status?: string;
   iframeSrc?: SafeResourceUrl;
 }
@@ -41,7 +42,8 @@ interface TabInfo {
         <span *ngIf="tab.type === 'subagent' && tab.status"
               class="osp-tab-badge"
               [class.badge-running]="tab.status === 'running'"
-              [class.badge-completed]="tab.status !== 'running'">
+              [class.badge-completed]="tab.status === 'completed' || tab.status === 'active'"
+              [class.badge-error]="tab.status === 'error' || tab.status === 'interrupted'">
           {{ tab.status }}
         </span>
         <button *ngIf="tab.type === 'subagent'"
@@ -114,6 +116,7 @@ interface TabInfo {
     }
     .badge-running { background: #81c99533; color: #81c995; }
     .badge-completed { background: #8ab4f822; color: #8ab4f8; }
+    .badge-error { background: #f2857522; color: #f28b82; }
     .osp-tab-close {
       display: inline-flex; align-items: center; justify-content: center;
       width: 16px; height: 16px; border-radius: 50%; border: none; background: none;
@@ -196,9 +199,11 @@ export class SubagentLayoutComponent implements OnInit {
     if (existing) {
       // Refresh: reload session from traj.json then refresh iframe
       this.subagentService.loadSession(agentName).subscribe({
-        next: () => {
+        next: (data) => {
+          existing.status = status || existing.status || 'running';
+          existing.sessionId = data.session_id;
           // Force iframe reload by resetting src
-          const newSrc = this.buildIframeSrc(existing.agentName!);
+          const newSrc = this.buildIframeSrc(data.session_id);
           existing.iframeSrc = undefined;
           setTimeout(() => {
             existing.iframeSrc = newSrc;
@@ -215,13 +220,14 @@ export class SubagentLayoutComponent implements OnInit {
     // New tab: load session then create iframe
     this.subagentService.loadSession(agentName).subscribe({
       next: (data) => {
-        const iframeSrc = this.buildIframeSrc(agentName);
+        const iframeSrc = this.buildIframeSrc(data.session_id);
         this.tabs.push({
           id: tabId,
           label: agentName,
           type: 'subagent',
           agentName,
-          status: status || 'completed',
+          sessionId: data.session_id,
+          status: status || 'running',
           iframeSrc,
         });
         this.activeTabId = tabId;
@@ -232,12 +238,11 @@ export class SubagentLayoutComponent implements OnInit {
     });
   }
 
-  private buildIframeSrc(agentName: string): SafeResourceUrl {
+  private buildIframeSrc(sessionId: string): SafeResourceUrl {
     // Read current app name (might have been set by Angular after init)
     const params = new URLSearchParams(window.location.search);
     const app = params.get('app') || this.appName;
     const uid = params.get('userId') || this.userId;
-    const sessionId = `subagent-${agentName}`;
     const baseUrl = window.location.href.split('?')[0];
     const url = `${baseUrl}?app=${encodeURIComponent(app)}&session=${encodeURIComponent(sessionId)}&userId=${encodeURIComponent(uid)}`;
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
