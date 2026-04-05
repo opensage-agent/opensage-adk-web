@@ -810,7 +810,9 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private appendEventRow(apiEvent: any, reverseOrder: boolean = false) {
-    if (apiEvent.inputTranscription !== undefined || apiEvent.outputTranscription !== undefined) {
+    const hasInputTranscription = apiEvent.inputTranscription != null;
+    const hasOutputTranscription = apiEvent.outputTranscription != null;
+    if (hasInputTranscription || hasOutputTranscription) {
       apiEvent.partial = true;
     }
 
@@ -833,10 +835,16 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           const lastIndex = events.length - 1;
           const lastEvent = events[lastIndex];
 
-          const isLastTranscription = !!((lastEvent.event as any)?.inputTranscription || (lastEvent.event as any)?.outputTranscription);
-          const isCurrentTranscription = !!(apiEvent.inputTranscription || apiEvent.outputTranscription);
+          const isLastTranscription =
+            (lastEvent.event as any)?.inputTranscription != null ||
+            (lastEvent.event as any)?.outputTranscription != null;
+          const isCurrentTranscription =
+            hasInputTranscription || hasOutputTranscription;
+          const sameEventId = !!apiEvent.id &&
+            (lastEvent.event as any)?.id === apiEvent.id;
 
           if ((lastEvent.event as any)?.partial &&
+            sameEventId &&
             lastEvent.role === (apiEvent.author === 'user' ? 'user' : 'bot') &&
             isLastTranscription === isCurrentTranscription) {
             const updatedEvent = this.mergePartialEvent(lastEvent, apiEvent);
@@ -859,10 +867,16 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           const checkIndex = reverseOrder ? 0 : events.length - 1;
           const checkEvent = events[checkIndex];
           if ((checkEvent.event as any)?.partial) {
-            const isLastTranscription = !!((checkEvent.event as any)?.inputTranscription || (checkEvent.event as any)?.outputTranscription);
-            const isCurrentTranscription = !!(apiEvent.inputTranscription || apiEvent.outputTranscription);
+            const isLastTranscription =
+              (checkEvent.event as any)?.inputTranscription != null ||
+              (checkEvent.event as any)?.outputTranscription != null;
+            const isCurrentTranscription =
+              hasInputTranscription || hasOutputTranscription;
+            const sameEventId = !!apiEvent.id &&
+              (checkEvent.event as any)?.id === apiEvent.id;
 
-            if (isLastTranscription === isCurrentTranscription) {
+            if (sameEventId &&
+              isLastTranscription === isCurrentTranscription) {
               existingIndex = checkIndex;
             } else {
               existingIndex = -1;
