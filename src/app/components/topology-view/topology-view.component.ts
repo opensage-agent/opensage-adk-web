@@ -32,7 +32,11 @@ declare const vis: any;
 })
 export class TopologyViewComponent implements OnInit, OnDestroy {
   @ViewChild('networkContainer', {static: true}) containerRef!: ElementRef;
-  @Output() agentClicked = new EventEmitter<{name: string; status: string}>();
+  @Output() agentClicked = new EventEmitter<{
+    name: string;
+    sessionId: string;
+    status: string;
+  }>();
 
   isEmpty = true;
   private network: any = null;
@@ -166,7 +170,11 @@ export class TopologyViewComponent implements OnInit, OnDestroy {
           if (params.nodes.length === 1) {
             const nd = data.nodes.find(n => n.id === params.nodes[0]);
             if (nd && nd.type !== 'root') {
-              this.agentClicked.emit({name: nd.name, status: nd.status});
+              this.agentClicked.emit({
+                name: nd.name,
+                sessionId: nd.session_id,
+                status: nd.status,
+              });
             }
           }
         });

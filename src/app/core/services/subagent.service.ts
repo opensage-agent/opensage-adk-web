@@ -18,6 +18,7 @@ export interface TopologyNode {
   id: string;
   label: string;
   name: string;
+  session_id: string;
   query: string;
   status: string;
   type: string;
@@ -41,6 +42,7 @@ export interface TopologyResponse {
 export interface LoadSessionResponse {
   session_id: string;
   agent_name: string;
+  subagent_session_id: string;
   event_count: number;
 }
 
@@ -60,9 +62,9 @@ export class SubagentService {
         `${this.baseUrl}/control/subagents/topology`);
   }
 
-  loadSession(agentName: string): Observable<LoadSessionResponse> {
+  loadSession(subagentSessionId: string): Observable<LoadSessionResponse> {
     return this.http.post<LoadSessionResponse>(
-        `${this.baseUrl}/control/subagents/${encodeURIComponent(agentName)}/load_session`,
+        `${this.baseUrl}/control/subagents/${encodeURIComponent(subagentSessionId)}/load_session`,
         null);
   }
 }

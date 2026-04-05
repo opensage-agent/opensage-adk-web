@@ -14,6 +14,7 @@ import {SubagentInfo, SubagentService} from '../../core/services/subagent.servic
           <span class="agent-name">{{ a.name }}</span>
           <span class="agent-badge" [class]="'badge-' + a.status">{{ a.status }}</span>
         </div>
+        <div class="agent-meta">session {{ a.session_id }}</div>
         <div class="agent-meta" *ngIf="a.parent_name">called by {{ a.parent_name }}</div>
         <div class="agent-query" *ngIf="a.query">{{ a.query }}</div>
       </div>
@@ -56,7 +57,11 @@ import {SubagentInfo, SubagentService} from '../../core/services/subagent.servic
   `],
 })
 export class SubagentListComponent implements OnInit, OnDestroy {
-  @Output() agentClicked = new EventEmitter<{name: string; status: string}>();
+  @Output() agentClicked = new EventEmitter<{
+    name: string;
+    sessionId: string;
+    status: string;
+  }>();
 
   agents: SubagentInfo[] = [];
   private refreshInterval: any = null;
@@ -82,6 +87,10 @@ export class SubagentListComponent implements OnInit, OnDestroy {
   }
 
   onAgentClick(agent: SubagentInfo) {
-    this.agentClicked.emit({name: agent.name, status: agent.status});
+    this.agentClicked.emit({
+      name: agent.name,
+      sessionId: agent.session_id,
+      status: agent.status,
+    });
   }
 }

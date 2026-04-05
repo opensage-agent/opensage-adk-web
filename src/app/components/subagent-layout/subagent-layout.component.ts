@@ -16,6 +16,7 @@ interface TabInfo {
   label: string;
   type: 'main'|'topology'|'list'|'subagent';
   agentName?: string;
+  subagentSessionId?: string;
   sessionId?: string;
   status?: string;
   iframeSrc?: SafeResourceUrl;
@@ -61,12 +62,12 @@ interface TabInfo {
 
       <!-- Topology -->
       <div class="osp-pane" [style.display]="activeTabId === 'topology' ? 'block' : 'none'">
-        <app-topology-view #topologyView (agentClicked)="openSubagentTab($event.name, $event.status)"></app-topology-view>
+        <app-topology-view #topologyView (agentClicked)="openSubagentTab($event.name, $event.sessionId, $event.status)"></app-topology-view>
       </div>
 
       <!-- Sub-agent list -->
       <div class="osp-pane" [style.display]="activeTabId === 'list' ? 'block' : 'none'">
-        <app-subagent-list (agentClicked)="openSubagentTab($event.name, $event.status)"></app-subagent-list>
+        <app-subagent-list (agentClicked)="openSubagentTab($event.name, $event.sessionId, $event.status)"></app-subagent-list>
       </div>
 
       <!-- Sub-agent iframes -->
@@ -192,15 +193,16 @@ export class SubagentLayoutComponent implements OnInit {
     }
   }
 
-  openSubagentTab(agentName: string, status?: string) {
-    const tabId = 'sub-' + agentName;
+  openSubagentTab(agentName: string, subagentSessionId: string, status?: string) {
+    const tabId = 'sub-' + subagentSessionId;
     const existing = this.tabs.find(t => t.id === tabId);
 
     if (existing) {
       // Refresh: reload session from traj.json then refresh iframe
-      this.subagentService.loadSession(agentName).subscribe({
+      this.subagentService.loadSession(subagentSessionId).subscribe({
         next: (data) => {
           existing.status = status || existing.status || 'running';
+          existing.subagentSessionId = data.subagent_session_id;
           existing.sessionId = data.session_id;
           // Force iframe reload by resetting src
           const newSrc = this.buildIframeSrc(data.session_id);
@@ -218,14 +220,15 @@ export class SubagentLayoutComponent implements OnInit {
     }
 
     // New tab: load session then create iframe
-    this.subagentService.loadSession(agentName).subscribe({
+    this.subagentService.loadSession(subagentSessionId).subscribe({
       next: (data) => {
         const iframeSrc = this.buildIframeSrc(data.session_id);
         this.tabs.push({
           id: tabId,
-          label: agentName,
+          label: `${agentName} · ${subagentSessionId}`,
           type: 'subagent',
           agentName,
+          subagentSessionId: data.subagent_session_id,
           sessionId: data.session_id,
           status: status || 'running',
           iframeSrc,
