@@ -45,7 +45,9 @@
                 "inject": false
               }
             ],
-            "scripts": [],
+            "scripts": [
+              "node_modules/vis-network/standalone/umd/vis-network.min.js"
+            ],
             "allowedCommonJsDependencies": [
               "string-to-color",
               "json-source-map",
@@ -53,6 +55,7 @@
               "ajv",
               "jmespath",
               "prismjs",
+              "vis-network",
               "prismjs/components/prism-javascript",
               "prismjs/components/prism-typescript",
               "prismjs/components/prism-css",

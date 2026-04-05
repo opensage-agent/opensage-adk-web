@@ -29,15 +29,15 @@ export interface ToolInfo {
 
 export class TooltipUtil {
     private static readonly toolMenuTooltips = new Map<string, string>([
-        ["Function tool", "Build custom tools for your specific ADK agent needs."],
+        ["Function tool", "Build custom tools for your specific OpenSage agent needs."],
         ["Built-in tool", "Ready-to-use functionality such as Google Search or code executors that provide agents with common capabilities. "],
         ["Agent tool", "A sub-agent that can be invoked as a tool by another agent."]
     ]);
 
     private static readonly toolDetailedInfo = new Map<string, ToolInfo>([
         ["Function tool", {
-            shortDescription: "Build custom tools for your specific ADK agent needs.",
-            detailedDescription: "The ADK framework automatically inspects your Python function's signature—including its name, docstring, parameters, type hints, and default values—to generate a schema. This schema is what the LLM uses to understand the tool's purpose, when to use it, and what arguments it requires.",
+            shortDescription: "Build custom tools for your specific OpenSage agent needs.",
+            detailedDescription: "The OpenSage framework automatically inspects your Python function's signature—including its name, docstring, parameters, type hints, and default values—to generate a schema. This schema is what the LLM uses to understand the tool's purpose, when to use it, and what arguments it requires.",
             docLink: "https://google.github.io/adk-docs/tools/function-tools/"
         }],
         ["Agent tool", {

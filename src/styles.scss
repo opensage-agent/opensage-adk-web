@@ -49,7 +49,9 @@ html.dark-theme {
 body {
   height: 100vh;
   margin: 0;
+  overflow: hidden;
   font-family: Roboto, 'Helvetica Neue', sans-serif;
+  background: var(--mat-sys-surface, #1e1e1e);
 }
 
 markdown p {

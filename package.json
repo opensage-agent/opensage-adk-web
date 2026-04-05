@@ -37,6 +37,8 @@
     "tslib": "^2.3.0",
     "uuidv7": "^1.0.2",
     "vanilla-jsoneditor": "^3.6.0",
+    "vis-data": "^8.0.3",
+    "vis-network": "^10.0.2",
     "yaml": "^2.8.0",
     "zone.js": "~0.15.0"
   },

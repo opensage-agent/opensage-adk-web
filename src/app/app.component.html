@@ -14,4 +14,6 @@
  limitations under the License.
 -->
 
-<app-chat></app-chat>
+<!-- Top-level: show layout with tab bar. Inside iframe: show chat directly -->
+<app-subagent-layout *ngIf="!isIframe"></app-subagent-layout>
+<app-chat *ngIf="isIframe"></app-chat>

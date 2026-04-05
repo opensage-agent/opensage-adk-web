@@ -16,13 +16,18 @@
  */
 
 import {ChangeDetectionStrategy, Component} from '@angular/core';
-import { ChatComponent } from './components/chat/chat.component';
+import {CommonModule} from '@angular/common';
+import {ChatComponent} from './components/chat/chat.component';
+import {SubagentLayoutComponent} from './components/subagent-layout/subagent-layout.component';
 
 @Component({
     changeDetection: ChangeDetectionStrategy.Default,
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss',
-    imports: [ChatComponent],
+    imports: [CommonModule, ChatComponent, SubagentLayoutComponent],
 })
-export class AppComponent {}
+export class AppComponent {
+    /** True when loaded inside an iframe (sub-agent session view) */
+    isIframe = window !== window.top;
+}

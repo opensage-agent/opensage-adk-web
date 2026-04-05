@@ -212,6 +212,16 @@
         [matTooltip]="i18n.uploadFileTooltip" [disabled]="!(isMessageFileUploadEnabledObs | async)">
         <mat-icon>attach_file</mat-icon>
       </button>
+      <button mat-icon-button (click)="sandboxFileInput.click()" class="chat-action-button"
+        [matTooltip]="i18n.uploadToSandboxTooltip" [disabled]="isUploadingSandbox">
+        <mat-icon>cloud_upload</mat-icon>
+      </button>
+      <input #sandboxFileInput type="file" style="display:none" (change)="onSandboxFileSelect($event)">
+      <button mat-icon-button (click)="stopTurn()" class="chat-action-button"
+        [matTooltip]="i18n.stopTurnTooltip" [disabled]="!isTurnRunning"
+        [class.stop-turn-active]="isTurnRunning">
+        <mat-icon>stop_circle</mat-icon>
+      </button>
       <button mat-icon-button [matMenuTriggerFor]="moreMenu" class="chat-action-button"
         [matTooltip]="i18n.moreOptionsTooltip" [disabled]="!(isManualStateUpdateEnabledObs | async)">
         <mat-icon>more_vert</mat-icon>

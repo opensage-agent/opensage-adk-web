@@ -46,7 +46,7 @@ export const CHAT_MESSAGES = {
   exportSessionTooltip: 'Export session',
   importSessionTooltip: 'Import session',
   loadingAgentsLabel: 'Loading agents, please wait...',
-  welcomeMessage: 'Welcome to ADK!',
+  welcomeMessage: 'Welcome to OpenSage!',
   selectAgentMessage: 'Select an agent on the left to begin with.',
   failedToLoadAgentsMessage: 'Failed to load agents. To get started, run',
   errorMessageLabel: 'Error message:',

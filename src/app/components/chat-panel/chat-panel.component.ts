@@ -17,7 +17,7 @@
 
 import { TextFieldModule } from '@angular/cdk/text-field';
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, effect, ElementRef, EventEmitter, HostListener, inject, InjectionToken, input, Input, OnChanges, Output, signal, SimpleChanges, Type, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, effect, ElementRef, EventEmitter, HostListener, inject, InjectionToken, input, Input, OnChanges, OnDestroy, OnInit, Output, signal, SimpleChanges, Type, ViewChild } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -95,7 +95,7 @@ import { TraceTreeComponent } from '../trace-tab/trace-tree/trace-tree.component
     TraceTreeComponent,
   ],
 })
-export class ChatPanelComponent implements OnChanges, AfterViewInit {
+export class ChatPanelComponent implements OnChanges, AfterViewInit, OnInit, OnDestroy {
   @Input() appName: string = '';
   @Input() agentReadme: string = '';
   sessionName = input<string>('');
@@ -186,6 +186,11 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
     toSignal(this.agentService.getLoadingState());
   readonly hideMoreOptionsButton =
     toSignal(this.featureFlagService.isMoreOptionsButtonHidden());
+
+  // Stop turn / upload to sandbox state
+  isTurnRunning = false;
+  isUploadingSandbox = false;
+  private turnCheckInterval: any = null;
 
   protected readonly onScroll = new Subject<Event>();
   protected readonly sanitizer = inject(SAFE_VALUES_SERVICE);
@@ -398,6 +403,10 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
           this.focusInput();
         }
       });
+
+    // Poll turn state for stop button
+    this.checkTurnState();
+    this.turnCheckInterval = setInterval(() => this.checkTurnState(), 3000);
 
     try {
       const savedMode = localStorage.getItem('chat-view-mode');
@@ -698,5 +707,56 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit {
           { behavior: 'smooth', block: 'nearest', inline: 'nearest' });
       }
     }, 50);
+  }
+
+  // ---- Stop Turn & Upload to Sandbox ----
+
+  private async checkTurnState() {
+    try {
+      const res = await fetch('/control/turn_state', {cache: 'no-store'});
+      const data = await res.json();
+      this.isTurnRunning = !!data.running;
+    } catch {
+      this.isTurnRunning = false;
+    }
+  }
+
+  async stopTurn() {
+    try {
+      await fetch('/control/stop_turn', {method: 'POST'});
+      await this.checkTurnState();
+    } catch {}
+  }
+
+  async onSandboxFileSelect(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input?.files?.[0];
+    if (!file) return;
+    this.isUploadingSandbox = true;
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('sandbox_type', 'main');
+      const res = await fetch('/control/upload_to_sandbox', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.ok) {
+        alert(`Uploaded ${data.filename} to sandbox:${data.sandbox_type} at ${data.target_path}`);
+      } else {
+        alert('Upload failed: ' + JSON.stringify(data));
+      }
+    } catch (err: any) {
+      alert('Upload error: ' + err.message);
+    } finally {
+      this.isUploadingSandbox = false;
+      input.value = '';
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.turnCheckInterval) clearInterval(this.turnCheckInterval);
+    if (this.mutationObserver) this.mutationObserver.disconnect();
   }
 }

@@ -21,9 +21,9 @@ import {InjectionToken} from '@angular/core';
  * Default English messages for SidePanelComponent.
  */
 export const SIDE_PANEL_MESSAGES = {
-  agentDevelopmentKitLabel: 'Agent Development Kit',
+  agentDevelopmentKitLabel: 'OpenSage',
   disclosureTooltip:
-      'ADK Web is for development purposes. It has access to all the data and should not be used in production.',
+      'OpenSage Web is for development purposes. It has access to all the data and should not be used in production.',
   collapsePanelTooltip: 'Collapse panel',
   eventsTabLabel: 'Events',
   stateTabLabel: 'State',
