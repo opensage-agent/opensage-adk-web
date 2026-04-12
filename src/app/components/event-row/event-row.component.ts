@@ -39,6 +39,7 @@ export class EventRowComponent {
   @Input() userId: string = '';
   @Input() sessionId: string = '';
   @Input() sessionName: string = '';
+  @Input() canEditSession: boolean = false;
   
   @Input() evalCase: EvalCase | null = null;
   @Input() isEvalEditMode: boolean = false;
@@ -62,6 +63,9 @@ export class EventRowComponent {
   @Output() readonly openBase64InNewTab = new EventEmitter<{data: string, mimeType: string}>();
   
   @Output() readonly editEvalCaseMessage = new EventEmitter<any>();
+  @Output() readonly editSessionMessage = new EventEmitter<any>();
+  @Output() readonly editSessionFunctionCall = new EventEmitter<any>();
+  @Output() readonly editSessionFunctionResponse = new EventEmitter<any>();
   @Output() readonly deleteEvalCaseMessage = new EventEmitter<{message: any, index: number}>();
   @Output() readonly editFunctionArgs = new EventEmitter<any>();
   

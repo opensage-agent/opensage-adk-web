@@ -56,6 +56,7 @@ import { GRAPH_SERVICE } from '../../core/services/interfaces/graph';
 import { LOCAL_FILE_SERVICE } from '../../core/services/interfaces/localfile';
 import { SAFE_VALUES_SERVICE } from '../../core/services/interfaces/safevalues';
 import { SESSION_SERVICE } from '../../core/services/interfaces/session';
+import { UpdateEventRequest } from '../../core/services/interfaces/session';
 import { STREAM_CHAT_SERVICE } from '../../core/services/interfaces/stream-chat';
 import { AUDIO_RECORDING_SERVICE } from '../../core/services/interfaces/audio-recording';
 import { AUDIO_PLAYING_SERVICE } from '../../core/services/interfaces/audio-playing';
@@ -912,7 +913,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     parts = this.combineTextParts(parts);
 
-    parts.forEach((part: any) => {
+    parts.forEach((part: any, partIndex: number) => {
       if (part.text !== undefined && part.text !== null) {
         updatedEvent.text = (updatedEvent.text || '') + part.text;
         if (part.thought) {
@@ -920,7 +921,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
           updatedEvent.text = this.processThoughtText(updatedEvent.text || '');
         }
       } else {
-        this.processPartIntoMessage(part, apiEvent, updatedEvent);
+        this.processPartIntoMessage(part, apiEvent, updatedEvent, partIndex);
       }
     });
 
@@ -1260,7 +1261,9 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     return `data:${mimeType};base64,${fixedBase64Data}`;
   }
 
-  private processPartIntoMessage(part: any, event: any, uiEvent: UiEvent) {
+  private processPartIntoMessage(
+    part: any, event: any, uiEvent: UiEvent, partIndex?: number,
+  ) {
     if (!part) return;
 
     if (event) {
@@ -1302,12 +1305,18 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       if (isLongRunning) {
         enrichedFunctionCall = {
           ...part.functionCall,
+          partIndex,
           isLongRunning: true,
           invocationId: event.invocationId,
           functionCallEventId: event.id,
           needsResponse: true,
           responseStatus: part.functionCall.responseStatus || 'pending',
           userResponse: part.functionCall.userResponse || '',
+        };
+      } else {
+        enrichedFunctionCall = {
+          ...part.functionCall,
+          partIndex,
         };
       }
 
@@ -1325,7 +1334,10 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       if (!uiEvent.functionResponses) {
         uiEvent.functionResponses = [];
       }
-      uiEvent.functionResponses.push(part.functionResponse);
+      uiEvent.functionResponses.push({
+        ...part.functionResponse,
+        partIndex,
+      });
       if (event?.id) {
         uiEvent.event = event as any;
       }
@@ -1820,7 +1832,11 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     const parts = isA2aResponse ?
       this.combineA2uiDataParts(event.content?.parts) :
       event.content?.parts || [];
-    const partsToProcess = reverseOrder ? [...parts].reverse() : parts;
+    const indexedParts = parts.map((part: any, index: number) => ({
+      part,
+      partIndex: index,
+    }));
+    const partsToProcess = reverseOrder ? [...indexedParts].reverse() : indexedParts;
 
     const role = event.author === 'user' ? 'user' : 'bot';
     const uiEvent = new UiEvent({
@@ -1846,11 +1862,12 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }
 
-    partsToProcess.forEach((part: any) => {
+    partsToProcess.forEach(({part: originalPart, partIndex}: any) => {
+      let part = originalPart;
       if (role === 'bot' && isA2aResponse && this.isA2uiDataPart(part)) {
         part = { a2ui: this.extractA2aDataPartJson(part).data };
       }
-      this.processPartIntoMessage(part, event, uiEvent);
+      this.processPartIntoMessage(part, event, uiEvent, partIndex);
     });
 
     return uiEvent;
@@ -2029,6 +2046,49 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     }, 0);
   }
 
+  protected editSessionMessage(message: UiEvent) {
+    this.uiEvents().forEach((uiEvent) => {
+      if (uiEvent !== message) {
+        uiEvent.isEditing = false;
+      }
+    });
+    this.userEditEvalCaseMessage = message.text || '';
+    message.isEditing = true;
+  }
+
+  protected editSessionFunctionCall(event: {
+    uiEvent: UiEvent, functionCall: any,
+  }) {
+    const editableFunctionCall = this.toEditableFunctionCall(event.functionCall);
+    this.openEditFunctionPartDialog(
+      event.uiEvent,
+      editableFunctionCall,
+      'Edit tool call',
+      (jsonContent) => ({
+        partIndex: event.functionCall.partIndex,
+        functionCall: this.toEditableFunctionCall(jsonContent),
+      }),
+      'Tool call updated',
+    );
+  }
+
+  protected editSessionFunctionResponse(event: {
+    uiEvent: UiEvent, functionResponse: any,
+  }) {
+    const editableFunctionResponse =
+      this.toEditableFunctionResponse(event.functionResponse);
+    this.openEditFunctionPartDialog(
+      event.uiEvent,
+      editableFunctionResponse,
+      'Edit tool response',
+      (jsonContent) => ({
+        partIndex: event.functionResponse.partIndex,
+        functionResponse: this.toEditableFunctionResponse(jsonContent),
+      }),
+      'Tool response updated',
+    );
+  }
+
   protected editFunctionArgs(message: any) {
     this.isEvalCaseEditing.set(true);
     const dialogRef = this.dialog.open(EditJsonDialogComponent, {
@@ -2081,9 +2141,15 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   protected cancelEditMessage(message: any) {
     message.isEditing = false;
     this.isEvalCaseEditing.set(false);
+    this.userEditEvalCaseMessage = '';
   }
 
   protected saveEditMessage(message: any) {
+    if (!this.isEvalEditMode()) {
+      this.saveSessionMessage(message);
+      return;
+    }
+
     this.hasEvalCaseChanged.set(true);
     this.isEvalCaseEditing.set(false);
     message.isEditing = false;
@@ -2097,6 +2163,99 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     };
 
     this.userEditEvalCaseMessage = '';
+  }
+
+  private saveSessionMessage(message: UiEvent) {
+    this.updateSessionEvent(
+      message,
+      {text: this.userEditEvalCaseMessage},
+      'Message updated',
+      () => {
+        message.isEditing = false;
+        this.userEditEvalCaseMessage = '';
+      },
+    );
+  }
+
+  private openEditFunctionPartDialog(
+    uiEvent: UiEvent,
+    value: any,
+    dialogHeader: string,
+    buildRequest: (jsonContent: any) => UpdateEventRequest,
+    successMessage: string,
+  ) {
+    const dialogRef = this.dialog.open(EditJsonDialogComponent, {
+      maxWidth: '90vw',
+      maxHeight: '90vh',
+      data: {
+        dialogHeader,
+        functionName: value.name,
+        jsonContent: value,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((jsonContent) => {
+      if (!jsonContent) {
+        return;
+      }
+      this.updateSessionEvent(
+        uiEvent,
+        buildRequest(jsonContent),
+        successMessage,
+      );
+    });
+  }
+
+  private toEditableFunctionCall(functionCall: any) {
+    return {
+      id: functionCall.id,
+      name: functionCall.name,
+      args: functionCall.args,
+    };
+  }
+
+  private toEditableFunctionResponse(functionResponse: any) {
+    return {
+      id: functionResponse.id,
+      name: functionResponse.name,
+      response: functionResponse.response,
+    };
+  }
+
+  private updateSessionEvent(
+    message: UiEvent,
+    request: UpdateEventRequest,
+    successMessage: string,
+    onSuccess?: () => void,
+  ) {
+    const eventId = message.event?.id;
+    if (!eventId || !this.sessionId) {
+      this.openSnackBar('This message cannot be edited.', 'OK');
+      return;
+    }
+
+    this.sessionService.updateEvent(
+      this.userId,
+      this.appName,
+      this.sessionId,
+      eventId,
+      request,
+    ).pipe(first()).subscribe({
+      next: (updatedEvent) => {
+        onSuccess?.();
+        this.appendEventRow(updatedEvent);
+        if (this.selectedEvent?.id === updatedEvent.id) {
+          this.selectedEvent = updatedEvent;
+        }
+        this.openSnackBar(successMessage, 'OK', 2000);
+      },
+      error: (error: HttpErrorResponse) => {
+        const detail = typeof error.error?.detail === 'string' ?
+          error.error.detail :
+          'Failed to update message.';
+        this.openSnackBar(detail, 'OK');
+      },
+    });
   }
 
   protected handleKeydown(event: KeyboardEvent, message: any) {

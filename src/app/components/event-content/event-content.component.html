@@ -53,6 +53,15 @@
             [tooltipContent]="functionCall.args || ''"
             [tooltipTitle]="'Function Call'"
           ></app-hover-info-button>
+          @if (canEditFunctionParts()) {
+          <span
+            class="material-symbols-outlined event-edit-button"
+            [matTooltip]="'Edit tool call'"
+            (click)="editSessionFunctionCall.emit({uiEvent: uiEvent, functionCall: functionCall})"
+          >
+            edit
+          </span>
+          }
         }
       }
     }
@@ -67,6 +76,15 @@
             [tooltipContent]="functionResponse.response || ''"
             [tooltipTitle]="'Function Response'"
           ></app-hover-info-button>
+          @if (canEditFunctionParts()) {
+          <span
+            class="material-symbols-outlined event-edit-button"
+            [matTooltip]="'Edit tool response'"
+            (click)="editSessionFunctionResponse.emit({uiEvent: uiEvent, functionResponse: functionResponse})"
+          >
+            edit
+          </span>
+          }
         }
       }
     }
@@ -156,7 +174,7 @@
           <span
             class="material-symbols-outlined eval-case-edit-button"
             [ngClass]="{ hidden: isEvalCaseEditing }"
-            [matTooltip]="i18n.editEvalMessageTooltip"
+            [matTooltip]="i18n.editMessageTooltip"
             (click)="editEvalCaseMessage.emit(uiEvent)"
           >
             edit
@@ -182,4 +200,15 @@
       </span>
     </div>
     } 
+    }
+    @if (!evalCase && canEditTextMessage()) {
+      <div>
+        <span
+          class="material-symbols-outlined event-edit-button"
+          [matTooltip]="i18n.editMessageTooltip"
+          (click)="editSessionMessage.emit(uiEvent)"
+        >
+          edit
+        </span>
+      </div>
     }

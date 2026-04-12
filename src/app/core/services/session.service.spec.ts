@@ -32,9 +32,13 @@ const SESSION_ID = 'session1';
 const SESSIONS_PATH = `/apps/${APP_NAME}/users/${USER_ID}/sessions`;
 const SESSION_PATH =
     `/apps/${APP_NAME}/users/${USER_ID}/sessions/${SESSION_ID}`;
+const EVENT_ID = 'event1';
+const EVENT_PATH =
+    `${SESSION_PATH}/events/${EVENT_ID}`;
 const METHOD_GET = 'GET';
 const METHOD_POST = 'POST';
 const METHOD_DELETE = 'DELETE';
+const METHOD_PATCH = 'PATCH';
 
 describe('SessionService', () => {
   let service: SessionService;
@@ -126,6 +130,22 @@ describe('SessionService', () => {
              API_SERVER_BASE_URL + SESSION_PATH,
          );
          expect(req.request.method).toEqual(METHOD_GET);
+         req.flush({});
+       });
+  });
+
+  describe('updateEvent', () => {
+    it('should call PATCH /apps/{appName}/users/{userId}/sessions/{sessionId}/events/{eventId}',
+       () => {
+         service.updateEvent(
+             USER_ID, APP_NAME, SESSION_ID, EVENT_ID, {text: 'edited'},
+         )
+           .subscribe();
+         const req = httpTestingController.expectOne(
+             API_SERVER_BASE_URL + EVENT_PATH,
+         );
+         expect(req.request.method).toEqual(METHOD_PATCH);
+         expect(req.request.body).toEqual({text: 'edited'});
          req.flush({});
        });
   });

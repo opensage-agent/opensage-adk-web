@@ -42,6 +42,7 @@ export class EventContentComponent {
   @Input() userId: string = '';
   @Input() sessionId: string = '';
   @Input() sessionName: string = '';
+  @Input() canEditSession: boolean = false;
   
   @Input() evalCase: EvalCase | null = null;
   @Input() isEvalEditMode: boolean = false;
@@ -61,6 +62,9 @@ export class EventContentComponent {
   @Output() readonly openBase64InNewTab = new EventEmitter<{data: string, mimeType: string}>();
   
   @Output() readonly editEvalCaseMessage = new EventEmitter<any>();
+  @Output() readonly editSessionMessage = new EventEmitter<any>();
+  @Output() readonly editSessionFunctionCall = new EventEmitter<any>();
+  @Output() readonly editSessionFunctionResponse = new EventEmitter<any>();
   @Output() readonly deleteEvalCaseMessage = new EventEmitter<{message: any, index: number}>();
   @Output() readonly editFunctionArgs = new EventEmitter<any>();
   
@@ -104,5 +108,22 @@ export class EventContentComponent {
 
   getEndOfAgentAuthor(): string {
     return this.uiEvent.event?.author || 'Agent';
+  }
+
+  canEditTextMessage(): boolean {
+    if (
+      !this.canEditSession || !this.uiEvent.text || this.uiEvent.thought ||
+      this.uiEvent.isEditing
+    ) {
+      return false;
+    }
+
+    return (this.uiEvent.event?.content?.parts || []).some(
+      (part: any) => part.text !== undefined && !part.thought,
+    );
+  }
+
+  canEditFunctionParts(): boolean {
+    return this.canEditSession && !this.uiEvent.isEditing;
   }
 }

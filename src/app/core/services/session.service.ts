@@ -22,8 +22,13 @@ import {map} from 'rxjs/operators';
 
 import {URLUtil} from '../../../utils/url-util';
 import {Session, SessionState} from '../models/Session';
+import {Event} from '../models/types';
 
-import {ListResponse, SessionService as SessionServiceInterface} from './interfaces/session';
+import {
+  ListResponse,
+  SessionService as SessionServiceInterface,
+  UpdateEventRequest,
+} from './interfaces/session';
 
 @Injectable({
   providedIn: 'root',
@@ -82,6 +87,19 @@ export class SessionService implements SessionServiceInterface {
         `/apps/${appName}/users/${userId}/sessions/${sessionId}`;
 
     return this.http.get<Session>(url);
+  }
+
+  updateEvent(
+      userId: string,
+      appName: string,
+      sessionId: string,
+      eventId: string,
+      request: UpdateEventRequest,
+  ) {
+    const url = this.apiServerDomain +
+        `/apps/${appName}/users/${userId}/sessions/${sessionId}/events/${eventId}`;
+
+    return this.http.patch<Event>(url, request);
   }
 
   importSession(userId: string, appName: string, events: any[], state?: SessionState) {

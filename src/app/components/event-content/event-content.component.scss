@@ -21,6 +21,12 @@ app-content-bubble + app-content-bubble {
   margin-right: 4px;
 }
 
+.event-edit-button {
+  cursor: pointer;
+  margin-left: 4px;
+  margin-right: 4px;
+}
+
 .eval-pass {
   display: flex;
   color: var(--mat-sys-primary);

@@ -19,11 +19,19 @@ import {InjectionToken} from '@angular/core';
 import {Observable} from 'rxjs';
 
 import {Session, SessionState} from '../../models/Session';
+import {Event, FunctionCall, FunctionResponse} from '../../models/types';
 
 export const SESSION_SERVICE =
     new InjectionToken<SessionService>('SessionService');
 import {type ListParams, type ListResponse} from './types';
 export {type ListParams, type ListResponse} from './types';
+
+export interface UpdateEventRequest {
+  partIndex?: number;
+  text?: string;
+  functionCall?: FunctionCall;
+  functionResponse?: FunctionResponse;
+}
 
 
 
@@ -48,6 +56,13 @@ export declare abstract class SessionService {
       appName: string,
       sessionId: string,
       ): Observable<Session>;
+  abstract updateEvent(
+      userId: string,
+      appName: string,
+      sessionId: string,
+      eventId: string,
+      request: UpdateEventRequest,
+      ): Observable<Event>;
   abstract importSession(
       userId: string,
       appName: string,

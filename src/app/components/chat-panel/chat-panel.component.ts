@@ -133,6 +133,9 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit, OnInit, OnD
   readonly openBase64InNewTab =
     new EventEmitter<{ data: string, mimeType: string }>();
   @Output() readonly editEvalCaseMessage = new EventEmitter<any>();
+  @Output() readonly editSessionMessage = new EventEmitter<any>();
+  @Output() readonly editSessionFunctionCall = new EventEmitter<any>();
+  @Output() readonly editSessionFunctionResponse = new EventEmitter<any>();
   @Output()
   readonly deleteEvalCaseMessage =
     new EventEmitter<{ message: any, index: number }>();
