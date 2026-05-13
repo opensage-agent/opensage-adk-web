@@ -63,6 +63,16 @@ export class AgentService implements AgentServiceInterface {
         body: JSON.stringify(req),
       })
         .then((response) => {
+          if (!response.ok) {
+            this.isLoading.next(false);
+            response.json().then((body) => {
+              const msg = body?.detail || `Server error: ${response.status}`;
+              self.zone.run(() => observer.error(msg));
+            }).catch(() => {
+              self.zone.run(() => observer.error(`Server error: ${response.status}`));
+            });
+            return;
+          }
           const reader = response.body?.getReader();
           const decoder = new TextDecoder('utf-8');
           let lastData = '';
@@ -103,6 +113,67 @@ export class AgentService implements AgentServiceInterface {
           read();
         })
         .catch((err) => {
+          self.zone.run(() => observer.error(err));
+        });
+    });
+  }
+
+  subscribeToEvents(sessionId: string, afterIndex: number): Observable<LlmResponse> {
+    const url = this.apiServerDomain +
+      `/events/subscribe?session_id=${sessionId}&after_index=${afterIndex}`;
+    this.isLoading.next(true);
+    return new Observable<LlmResponse>((observer) => {
+      const self = this;
+      fetch(url, {
+        method: 'GET',
+        headers: {'Accept': 'text/event-stream'},
+      })
+        .then((response) => {
+          if (!response.ok) {
+            this.isLoading.next(false);
+            self.zone.run(() => observer.error(`Subscribe error: ${response.status}`));
+            return;
+          }
+          const reader = response.body?.getReader();
+          const decoder = new TextDecoder('utf-8');
+          let buffer = '';
+
+          const read = () => {
+            reader?.read()
+              .then(({done, value}) => {
+                if (done) {
+                  this.isLoading.next(false);
+                  self.zone.run(() => observer.complete());
+                  return;
+                }
+                buffer += decoder.decode(value, {stream: true});
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+                for (const line of lines) {
+                  if (!line.startsWith('data:')) continue;
+                  const data = line.replace(/^data:\s*/, '').trim();
+                  if (!data) continue;
+                  try {
+                    const parsed = JSON.parse(data);
+                    if (parsed.done || parsed.error) {
+                      this.isLoading.next(false);
+                      self.zone.run(() => observer.complete());
+                      return;
+                    }
+                    self.zone.run(() => observer.next(parsed as LlmResponse));
+                  } catch {}
+                }
+                read();
+              })
+              .catch((err) => {
+                this.isLoading.next(false);
+                self.zone.run(() => observer.error(err));
+              });
+          };
+          read();
+        })
+        .catch((err) => {
+          this.isLoading.next(false);
           self.zone.run(() => observer.error(err));
         });
     });

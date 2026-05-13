@@ -609,8 +609,33 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
             .subscribe();
         }
         this.updateWithSelectedSession(session);
+        this.reconnectToActiveRun(sessionId, session.events?.length ?? 0);
       }
     });
+  }
+
+  private reconnectToActiveRun(sessionId: string, eventCount: number) {
+    fetch('/control/turn_state?session_id=' + sessionId, {cache: 'no-store'})
+      .then(res => res.json())
+      .then(state => {
+        if (!state.running) return;
+        this.agentService.subscribeToEvents(sessionId, eventCount).subscribe({
+          next: (chunkJson: any) => {
+            if (chunkJson.error) return;
+            this.appendEventRow(chunkJson);
+            if (chunkJson.actions) {
+              this.processActionArtifact(chunkJson);
+              this.processActionStateDelta(chunkJson);
+            }
+            this.changeDetectorRef.detectChanges();
+          },
+          error: () => {},
+          complete: () => {
+            this.loadTraceData();
+          },
+        });
+      })
+      .catch(() => {});
   }
 
   private hideSidePanelIfNeeded() {

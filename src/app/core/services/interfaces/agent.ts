@@ -30,6 +30,10 @@ export abstract class AgentService {
   abstract setApp(name: string): void;
   abstract getLoadingState(): BehaviorSubject<boolean>;
   abstract runSse(req: AgentRunRequest): Observable<LlmResponse>;
+  subscribeToEvents(sessionId: string, afterIndex: number): Observable<LlmResponse> {
+    console.warn('subscribeToEvents not implemented');
+    return of({} as LlmResponse);
+  }
   abstract listApps(): Observable<string[]>;
   abstract getAppInfo(name: string): Observable<any>;
   abstract getAppGraphImage(name: string, darkMode: boolean, node?: string): Observable<any>;
