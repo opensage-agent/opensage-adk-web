@@ -447,6 +447,7 @@
         (toggleAudioRecording)="toggleAudioRecording()"
         (toggleVideoRecording)="toggleVideoRecording()"
         (longRunningResponseComplete)="sendMessage($event)"
+        (dispatcherTurnDetected)="onDispatcherTurn()"
         [sessionName]="sessionId"
         [invocationDisplayMap]="invocationDisplayMap()"
       ></app-chat-panel>

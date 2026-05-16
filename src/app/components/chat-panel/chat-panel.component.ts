@@ -129,6 +129,7 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit, OnInit, OnD
   @Output() readonly cancelEditMessage = new EventEmitter<any>();
   @Output() readonly saveEditMessage = new EventEmitter<any>();
   @Output() readonly openViewImageDialog = new EventEmitter<string>();
+  @Output() readonly dispatcherTurnDetected = new EventEmitter<void>();
   @Output()
   readonly openBase64InNewTab =
     new EventEmitter<{ data: string, mimeType: string }>();
@@ -718,7 +719,11 @@ export class ChatPanelComponent implements OnChanges, AfterViewInit, OnInit, OnD
     try {
       const res = await fetch('/control/turn_state', {cache: 'no-store'});
       const data = await res.json();
+      const wasRunning = this.isTurnRunning;
       this.isTurnRunning = !!data.running;
+      if (this.isTurnRunning && !wasRunning && !this.agentService.getLoadingState().getValue()) {
+        this.dispatcherTurnDetected.emit();
+      }
     } catch {
       this.isTurnRunning = false;
     }

@@ -12,6 +12,7 @@ export interface SubagentInfo {
   has_traj: boolean;
   query: string;
   status: string;
+  model?: string;
 }
 
 export interface TopologyNode {
@@ -22,6 +23,7 @@ export interface TopologyNode {
   query: string;
   status: string;
   type: string;
+  model?: string;
 }
 
 export interface TopologyEdge {

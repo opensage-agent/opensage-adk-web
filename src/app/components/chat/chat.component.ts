@@ -614,6 +614,12 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  onDispatcherTurn() {
+    if (!this.sessionId) return;
+    const eventCount = this.uiEvents()?.length ?? 0;
+    this.reconnectToActiveRun(this.sessionId, eventCount);
+  }
+
   private reconnectToActiveRun(sessionId: string, eventCount: number) {
     fetch('/control/turn_state?session_id=' + sessionId, {cache: 'no-store'})
       .then(res => res.json())

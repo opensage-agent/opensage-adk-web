@@ -15,6 +15,7 @@ import {SubagentInfo, SubagentService} from '../../core/services/subagent.servic
           <span class="agent-badge" [class]="'badge-' + a.status">{{ a.status }}</span>
         </div>
         <div class="agent-meta">session {{ a.session_id }}</div>
+        <div class="agent-meta" *ngIf="a.model">model: {{ a.model }}</div>
         <div class="agent-meta" *ngIf="a.parent_name">called by {{ a.parent_name }}</div>
         <div class="agent-query" *ngIf="a.query">{{ a.query }}</div>
       </div>
@@ -42,6 +43,7 @@ import {SubagentInfo, SubagentService} from '../../core/services/subagent.servic
     }
     .badge-running { background: #81c99533; color: #81c995; border: 1px solid #81c99544; }
     .badge-completed { background: #8ab4f822; color: #8ab4f8; border: 1px solid #8ab4f844; }
+    .badge-sleeping { background: #8ab4f822; color: #8ab4f8; border: 1px solid #8ab4f844; }
     .badge-active { background: #8ab4f822; color: #8ab4f8; border: 1px solid #8ab4f844; }
     .badge-error { background: #f2857522; color: #f28b82; border: 1px solid #f28b8244; }
     .badge-interrupted { background: #f2857522; color: #f28b82; border: 1px solid #f28b8244; }

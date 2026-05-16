@@ -36,7 +36,9 @@ export class TopologyViewComponent implements OnInit, OnDestroy {
     name: string;
     sessionId: string;
     status: string;
+    type: string;
   }>();
+  @Output() statusUpdate = new EventEmitter<{session_id: string; status: string}[]>();
 
   isEmpty = true;
   private network: any = null;
@@ -49,7 +51,7 @@ export class TopologyViewComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.refresh();
-    this.refreshInterval = setInterval(() => this.refresh(), 5000);
+    this.refreshInterval = setInterval(() => this.refresh(), 1000);
   }
 
   /** Call when the topology tab becomes visible so the network recenters. */
@@ -88,6 +90,7 @@ export class TopologyViewComponent implements OnInit, OnDestroy {
         this.lastHash = newHash;
         this.isEmpty = false;
         this.nodes = data.nodes;
+        this.statusUpdate.emit(data.nodes.map(n => ({session_id: n.session_id, status: n.status})));
 
         if (typeof vis === 'undefined') {
           this.renderFallback(data);
@@ -97,14 +100,17 @@ export class TopologyViewComponent implements OnInit, OnDestroy {
         const colorMap: Record<string, string> = {
           active: '#8ab4f8',
           running: '#81c995',
+          sleeping: '#5f9dff',
           completed: '#5f9dff',
           error: '#f28b82',
           interrupted: '#f28b82',
+          terminating: '#ffa726',
+          terminated: '#78909c',
         };
 
         const visNodes = data.nodes.map(n => ({
           id: n.id,
-          label: n.label,
+          label: n.model ? n.label + '\n⚙ ' + n.model : n.label,
           color: {
             background: colorMap[n.status] || '#656565',
             border: 'transparent',
@@ -169,11 +175,12 @@ export class TopologyViewComponent implements OnInit, OnDestroy {
         this.network.on('click', (params: any) => {
           if (params.nodes.length === 1) {
             const nd = data.nodes.find(n => n.id === params.nodes[0]);
-            if (nd && nd.type !== 'root') {
+            if (nd) {
               this.agentClicked.emit({
                 name: nd.name,
                 sessionId: nd.session_id,
                 status: nd.status,
+                type: nd.type,
               });
             }
           }
@@ -205,18 +212,23 @@ export class TopologyViewComponent implements OnInit, OnDestroy {
     const colorMap: Record<string, string> = {
       active: '#8ab4f8',
       running: '#81c995',
+      sleeping: '#5f9dff',
       completed: '#5f9dff',
       error: '#f28b82',
       interrupted: '#f28b82',
+      terminating: '#ffa726',
+      terminated: '#78909c',
     };
     let html = '<div style="padding:24px;font-family:monospace;font-size:13px;white-space:pre;color:#b2b2b2">';
     for (const n of data.nodes) {
       const pre = n.type === 'root' ? '' : '  └─ ';
       const dot = n.status === 'running' ? '●' :
-          n.status === 'completed' ? '◆' :
-          (n.status === 'error' || n.status === 'interrupted') ? '✖' : '○';
+          (n.status === 'sleeping' || n.status === 'completed') ? '◆' :
+          (n.status === 'error' || n.status === 'interrupted') ? '✖' :
+          (n.status === 'terminating' || n.status === 'terminated') ? '⊘' : '○';
       const sc = colorMap[n.status] || '#656565';
-      html += `${pre}<span style="color:${sc};cursor:${n.type === 'root' ? 'default' : 'pointer'}">${dot} ${n.label}</span>\n`;
+      const modelTag = n.model ? ` [${n.model}]` : '';
+      html += `${pre}<span style="color:${sc};cursor:${n.type === 'root' ? 'default' : 'pointer'}">${dot} ${n.label}${modelTag}</span>\n`;
     }
     html += '</div>';
     this.containerRef.nativeElement.innerHTML = html;

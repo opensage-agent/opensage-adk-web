@@ -43,8 +43,10 @@ interface TabInfo {
         <span *ngIf="tab.type === 'subagent' && tab.status"
               class="osp-tab-badge"
               [class.badge-running]="tab.status === 'running'"
-              [class.badge-completed]="tab.status === 'completed' || tab.status === 'active'"
-              [class.badge-error]="tab.status === 'error' || tab.status === 'interrupted'">
+              [class.badge-completed]="tab.status === 'completed' || tab.status === 'active' || tab.status === 'sleeping'"
+              [class.badge-error]="tab.status === 'error' || tab.status === 'interrupted'"
+              [class.badge-terminating]="tab.status === 'terminating'"
+              [class.badge-terminated]="tab.status === 'terminated'">
           {{ tab.status }}
         </span>
         <button *ngIf="tab.type === 'subagent'"
@@ -62,7 +64,7 @@ interface TabInfo {
 
       <!-- Topology -->
       <div class="osp-pane" [style.display]="activeTabId === 'topology' ? 'block' : 'none'">
-        <app-topology-view #topologyView (agentClicked)="openSubagentTab($event.name, $event.sessionId, $event.status)"></app-topology-view>
+        <app-topology-view #topologyView (agentClicked)="onTopologyClick($event)" (statusUpdate)="onTopologyStatusUpdate($event)"></app-topology-view>
       </div>
 
       <!-- Sub-agent list -->
@@ -118,6 +120,8 @@ interface TabInfo {
     .badge-running { background: #81c99533; color: #81c995; }
     .badge-completed { background: #8ab4f822; color: #8ab4f8; }
     .badge-error { background: #f2857522; color: #f28b82; }
+    .badge-terminating { background: #ffa72633; color: #ffa726; }
+    .badge-terminated { background: #78909c33; color: #78909c; }
     .osp-tab-close {
       display: inline-flex; align-items: center; justify-content: center;
       width: 16px; height: 16px; border-radius: 50%; border: none; background: none;
@@ -160,12 +164,10 @@ export class SubagentLayoutComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    // Read app/userId from URL params (Angular sets them)
     const params = new URLSearchParams(window.location.search);
     this.appName = params.get('app') || '';
     this.userId = params.get('userId') || 'user';
 
-    // Fallback: fetch app name from API
     if (!this.appName) {
       fetch('/list-apps')
           .then(r => r.json())
@@ -173,6 +175,19 @@ export class SubagentLayoutComponent implements OnInit {
             if (Array.isArray(d) && d.length > 0) this.appName = d[0];
           })
           .catch(() => {});
+    }
+  }
+
+  onTopologyStatusUpdate(nodes: {session_id: string; status: string}[]) {
+    const statusById = new Map<string, string>();
+    for (const n of nodes) {
+      statusById.set(n.session_id, n.status);
+    }
+    for (const tab of this.tabs) {
+      if (tab.type === 'subagent' && tab.subagentSessionId) {
+        const newStatus = statusById.get(tab.subagentSessionId);
+        if (newStatus) tab.status = newStatus;
+      }
     }
   }
 
@@ -191,6 +206,14 @@ export class SubagentLayoutComponent implements OnInit {
     if (this.activeTabId === id) {
       this.activeTabId = 'topology';
     }
+  }
+
+  onTopologyClick(event: {name: string; sessionId: string; status: string; type: string}) {
+    if (event.type === 'root') {
+      this.activateTab('main');
+      return;
+    }
+    this.openSubagentTab(event.name, event.sessionId, event.status);
   }
 
   openSubagentTab(agentName: string, subagentSessionId: string, status?: string) {
